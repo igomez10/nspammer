@@ -7,10 +7,22 @@ import (
 
 type SpamClassifier struct {
 	Dataset map[string]bool
+
+	// Training phase results
+	vocab                    map[string]bool
+	positiveCount            map[string]float64
+	negativeCount            map[string]float64
+	totalPositiveWords       float64
+	totalNegativeWords       float64
+	pTrue                    float64
+	pFalse                   float64
+	laplaceSmoothingConstant float64
+	trained                  bool
 }
 
-func (s *SpamClassifier) Classify(input string) bool {
-	// calculate p(true)
+// Train preprocesses the dataset and calculates all necessary probabilities
+func (s *SpamClassifier) Train() {
+	// Calculate class priors p(spam) and p(not spam)
 	counterTrue := 0.0
 	counterFalse := 0.0
 	for _, v := range s.Dataset {
@@ -21,51 +33,54 @@ func (s *SpamClassifier) Classify(input string) bool {
 		}
 	}
 
-	// initialize dict
-	totalPositiveWords := 0.0
-	totalNegativeWords := 0.0
-	vocab := map[string]bool{}
-	positiveCount := map[string]float64{}
-	negativeCount := map[string]float64{}
+	s.pTrue = counterTrue / float64(len(s.Dataset))
+	s.pFalse = counterFalse / float64(len(s.Dataset))
+
+	// Build vocabulary and count word occurrences
+	s.vocab = map[string]bool{}
+	s.totalPositiveWords = 0.0
+	s.totalNegativeWords = 0.0
+	s.positiveCount = map[string]float64{}
+	s.negativeCount = map[string]float64{}
+
 	for observation, isPositive := range s.Dataset {
 		observationWords := strings.Split(observation, " ")
 		for _, w := range observationWords {
-			vocab[w] = true
+			s.vocab[w] = true
 			if isPositive {
-				positiveCount[w] += 1
-				totalPositiveWords += 1
+				s.positiveCount[w] += 1
+				s.totalPositiveWords += 1
 			} else {
-				negativeCount[w] += 1
-				totalNegativeWords += 1
+				s.negativeCount[w] += 1
+				s.totalNegativeWords += 1
 			}
 		}
 	}
 
-	laplaceSmoothingConstant := 1.0
+	s.laplaceSmoothingConstant = 1.0
+	s.trained = true
+}
 
-	// start with ptrue
-	// this is the prior
-	positiveScore := 0.0
-	var pTrue float64 = counterTrue / float64(len(s.Dataset))
-	positiveScore += math.Log(pTrue)
-	// multiply each pWord|true to find the posterior
-	// posterior is p(spam|words)
+// Classify uses the trained model to classify input text as spam or not spam
+func (s *SpamClassifier) Classify(input string) bool {
+	// Train automatically if not already trained (for backward compatibility)
+	if !s.trained {
+		s.Train()
+	}
+
+	// Calculate positive score: log(P(spam)) + sum(log(P(word|spam)))
+	positiveScore := math.Log(s.pTrue)
 	for _, w := range strings.Split(input, " ") {
-		numerator := positiveCount[w] + laplaceSmoothingConstant
-		denominator := laplaceSmoothingConstant * float64(len(vocab))
-		denominator += (totalPositiveWords)
+		numerator := s.positiveCount[w] + s.laplaceSmoothingConstant
+		denominator := s.laplaceSmoothingConstant*float64(len(s.vocab)) + s.totalPositiveWords
 		positiveScore += math.Log(numerator / denominator)
 	}
 
-	// calculate the other posterior
-	// posterior p(nonspam|words)
-	negativeScore := 0.0
-	var pFalse float64 = counterFalse / float64(len(s.Dataset))
-	negativeScore += math.Log(pFalse)
+	// Calculate negative score: log(P(not spam)) + sum(log(P(word|not spam)))
+	negativeScore := math.Log(s.pFalse)
 	for _, w := range strings.Split(input, " ") {
-		numerator := negativeCount[w] + laplaceSmoothingConstant
-		denominator := laplaceSmoothingConstant * float64(len(vocab))
-		denominator += (totalNegativeWords)
+		numerator := s.negativeCount[w] + s.laplaceSmoothingConstant
+		denominator := s.laplaceSmoothingConstant*float64(len(s.vocab)) + s.totalNegativeWords
 		negativeScore += math.Log(numerator / denominator)
 	}
 

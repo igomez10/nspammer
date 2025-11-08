@@ -71,7 +71,7 @@ func TestSpamClassifier_Classify(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var s SpamClassifier
+			s := NewSpamClassifier(tt.trainingData)
 			s.Dataset = tt.trainingData
 			got := s.Classify(tt.input)
 			if got != tt.want {

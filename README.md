@@ -1,6 +1,6 @@
 # nspammer
 
-A Naive Bayes spam classifier implementation in Go. This project implements a text classification system using the Naive Bayes algorithm with Laplace smoothing to classify messages as spam or not spam.
+A Naive Bayes spam classifier implementation in Go, enabling text classification system using the Naive Bayes algorithm with Laplace smoothing to classify messages as spam or not spam.
 
 ## Features
 

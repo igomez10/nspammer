@@ -34,3 +34,34 @@ func TestNoCode(t *testing.T) {
 	pNonSpamGivenLipitorHelloSir := pNonSpam * pLipitorNonSpam * pHelloNonSpam * pSirNonSPam
 	fmt.Printf("%.10f\n", pNonSpamGivenLipitorHelloSir)
 }
+
+func TestSpamClassifier_Classify(t *testing.T) {
+	tests := []struct {
+		name         string // description of this test case
+		trainingData map[string]bool
+		input        string
+		want         bool
+	}{
+		{
+			name: "simple case",
+			trainingData: map[string]bool{
+				"spam":    true,
+				"spam2":   true,
+				"spam3":   true,
+				"notpsam": false,
+			},
+			input: "spam spam2 spam3",
+			want:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var s SpamClassifier
+			s.Dataset = tt.trainingData
+			got := s.Classify(tt.input)
+			if got != tt.want {
+				t.Errorf("Classify() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

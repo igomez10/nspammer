@@ -46,7 +46,7 @@ func (s *SpamClassifier) Train() {
 	s.TotalWordsInNegative = 0.0
 	s.WordCounts = map[string]WordRecord{}
 
-	for observation, isPositiveObsertation := range s.Dataset {
+	for observation, isPositiveObservation := range s.Dataset {
 		observationWords := strings.Split(observation, " ")
 		for _, w := range observationWords {
 			if _, exists := s.WordCounts[w]; !exists {
@@ -56,7 +56,7 @@ func (s *SpamClassifier) Train() {
 				}
 			}
 
-			if isPositiveObsertation {
+			if isPositiveObservation {
 				s.WordCounts[w] = WordRecord{
 					PositiveCount: s.WordCounts[w].PositiveCount + 1,
 					NegativeCount: s.WordCounts[w].NegativeCount,

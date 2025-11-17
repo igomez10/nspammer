@@ -16,7 +16,7 @@ func NewSpamClassifier(dataset map[string]bool) *SpamClassifier {
 	s := &SpamClassifier{
 		Dataset: dataset,
 	}
-	s.Train()
+	s.train()
 	return s
 }
 
@@ -33,7 +33,7 @@ type SpamClassifier struct {
 }
 
 // Train preprocesses the dataset and calculates all necessary probabilities
-func (s *SpamClassifier) Train() {
+func (s *SpamClassifier) train() {
 	// Calculate class priors p(spam) and p(not spam)
 	for _, v := range s.Dataset {
 		if v == true {

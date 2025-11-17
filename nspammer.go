@@ -16,7 +16,7 @@ func NewSpamClassifier(dataset map[string]bool) *SpamClassifier {
 	s := &SpamClassifier{
 		Dataset: dataset,
 	}
-	s.Train()
+	s.train()
 	return s
 }
 
@@ -33,7 +33,7 @@ type SpamClassifier struct {
 }
 
 // Train preprocesses the dataset and calculates all necessary probabilities
-func (s *SpamClassifier) Train() {
+func (s *SpamClassifier) train() {
 	// Calculate class priors p(spam) and p(not spam)
 	for _, v := range s.Dataset {
 		if v == true {
@@ -46,7 +46,7 @@ func (s *SpamClassifier) Train() {
 	s.TotalWordsInNegative = 0.0
 	s.WordCounts = map[string]WordRecord{}
 
-	for observation, isPositiveObsertation := range s.Dataset {
+	for observation, isPositiveObservation := range s.Dataset {
 		observationWords := strings.Split(observation, " ")
 		for _, w := range observationWords {
 			if _, exists := s.WordCounts[w]; !exists {
@@ -56,7 +56,7 @@ func (s *SpamClassifier) Train() {
 				}
 			}
 
-			if isPositiveObsertation {
+			if isPositiveObservation {
 				s.WordCounts[w] = WordRecord{
 					PositiveCount: s.WordCounts[w].PositiveCount + 1,
 					NegativeCount: s.WordCounts[w].NegativeCount,
